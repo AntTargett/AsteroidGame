@@ -28,17 +28,6 @@ var updateAngle = function (turnRate) { return function (timeDelta, keysPressed)
     var direction = directionKeysPressed === a ? -1 : directionKeysPressed === d ? 1 : 0;
     return __assign({}, prevShip, { angle: prevShip.angle + (turnRate / 180) * Math.PI * direction * timeDelta });
 }; }; };
-function createAsteroid(x, y, colour) {
-    var canvas = document.getElementById("canvas");
-    if (!canvas)
-        throw "Couldn't get canvas element!";
-    var dot = new Elem(canvas, "circle")
-        .attr("transform", "translate(300 300) rotate(170)")
-        .attr("x", (150 + 150 * x).toString())
-        .attr("y", (150 + 150 * y).toString())
-        .attr("r", "10")
-        .attr("fill", "#008000");
-}
 var gameSpeed = 25;
 function movement(x, y) {
     return "translate(" + x + " " + y + ")";
@@ -48,6 +37,9 @@ function toRadions(angle) {
 }
 function toDegrees(angle) {
     return angle * (180 / Math.PI);
+}
+function isDead(ship) {
+    return ship.dead;
 }
 function asteroids() {
     var bullets = [];
@@ -73,16 +65,33 @@ function asteroids() {
         .attr("points", "-15,20 15,20 0,-20")
         .attr("style", "fill:lime;stroke:purple;stroke-width:1");
     // Ship object
-    var ship = { element: element, gElem: g, x: 300, y: 300, angle: 0 };
+    var ship = {
+        element: element,
+        gElem: g,
+        x: 300,
+        y: 300,
+        angle: 0,
+        dead: false
+    };
     // const shipObservable = ship.observe()
     var keydownObservable = Observable.fromEvent(document, "keydown");
     var keyupObservable = Observable.fromEvent(document, "keyup");
     var bulletObservable = Observable.interval(25);
-    var something = bulletObservable
-        .takeUntil(bulletObservable.filter(function () { return false; }))
+    // Handles bullet movement
+    bulletObservable
+        .takeUntil(bulletObservable.filter(function () { return isDead(ship); }))
         .subscribe(function (x) {
-        console.log("HALP");
+        bullets = bullets.filter(function (bullet) {
+            var currTimer = parseInt(bullet.attr("timer"));
+            if (currTimer <= 0) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        });
         bullets.forEach(function (bullet) {
+            var currTimer = parseInt(bullet.attr("timer")) - 1;
             var angle = parseInt(bullet.attr("angle"));
             var angleInRadions = toRadions(angle);
             var y = parseInt(bullet.attr("y"));
@@ -92,45 +101,73 @@ function asteroids() {
             bullet
                 .attr("x", calculationX)
                 .attr("y", calculationY)
+                .attr("timer", currTimer)
                 .attr("transform", movement(calculationX, calculationY) + rotation(angle));
         });
     });
+    // Creates a bullet witht the current direction of the ship
+    function shootBullet(shipX, shipY, shipAngle) {
+        var bulletStartX = shipX;
+        var bulletStatY = shipY;
+        var bulletAngle = shipAngle;
+        bullets.push(new Elem(svg, "circle")
+            .attr("id", "bullet")
+            .attr("timer", 150)
+            .attr("x", bulletStartX)
+            .attr("y", bulletStatY)
+            .attr("angle", bulletAngle)
+            .attr("r", "3")
+            .attr("fill", "#FFFFFF")
+            .attr("transform", movement(bulletStartX, bulletStatY) + rotation(bulletAngle)));
+    }
+    function createAsteroid(x, y, colour) {
+        var canvas = document.getElementById("canvas");
+        if (!canvas)
+            throw "Couldn't get canvas element!";
+        // test = <svg
+        // xmlns="http://www.w3.org/2000/svg"
+        // xmlns:xlink="http://www.w3.org/1999/xlink"
+        // id="test1"
+        // height="200px"
+        // width="200px">
+        //     <image
+        //     id="testimg1"
+        //     src="./assets/m.svg"
+        //     width="100"
+        //     height="100"
+        //     x="0"
+        //     y="0"/>
+        // </svg>
+        var test = new Elem(canvas, "circle")
+            .attr("transform", "translate(300 300) rotate(170)")
+            .attr("src", "./assets/m.svg");
+        var dot = new Elem(canvas, "circle")
+            .attr("transform", "translate(300 300) rotate(170)")
+            .attr("x", (150 + 150 * x).toString())
+            .attr("y", (150 + 150 * y).toString())
+            .attr("r", "10")
+            .attr("fill", "#008000");
+    }
     function performShipActions(movementActionObject) {
         for (var key in movementActionObject) {
             if (movementActionObject.hasOwnProperty(key) &&
                 movementActionObject[key]) {
                 var element_1 = key;
-                console.log(key + " -> " + movementActionObject[key]);
-                console.log("SHOULD DO SOMETHING", element_1);
                 if (element_1 === "d" || element_1 === "a") {
                     var direction = element_1 === "d" ? 1 : -1;
                     ship.angle = ship.angle + direction * 10;
                     ship.gElem.attr("transform", movement(ship.x, ship.y) + rotation(ship.angle));
                 }
                 else if (element_1 === "w") {
-                    console.log(element_1);
-                    console.log("SHIP VAL", ship.x);
                     var angleInRadions = toRadions(ship.angle);
                     var calculationX = 10 * Math.sin(angleInRadions);
                     var calculationY = 10 * Math.cos(angleInRadions);
-                    console.log("CALCULATING", calculationX, calculationY, angleInRadions);
-                    console.log("Attribute x", ship.element.attr("x"));
                     ship.x = ship.x + calculationX;
                     ship.y = ship.y + -calculationY;
                     ship.gElem.attr("transform", movement(ship.x, ship.y) + rotation(ship.angle));
                 }
                 else if (element_1 === " ") {
-                    console.log("BANG BANG SHOOT GUN", ship.x, ship.y);
-                    var bulletStartX = ship.x;
-                    var bulletStatY = ship.y;
-                    var bulletAngle = ship.angle;
-                    bullets.push(new Elem(svg, "circle")
-                        .attr("x", bulletStartX)
-                        .attr("y", bulletStatY)
-                        .attr("angle", bulletAngle)
-                        .attr("r", "3")
-                        .attr("fill", "#FFFFFF")
-                        .attr("transform", movement(ship.x, ship.y) + rotation(ship.angle)));
+                    shootBullet(ship.x, ship.y, ship.angle);
                 }
             }
         }
@@ -153,27 +190,26 @@ function asteroids() {
         var clientX = _a.clientX, clientY = _a.clientY;
         return ({ x: clientX, y: clientY });
     });
-    mouseDown
-        .filter(function (e) {
-        {
-            console.log(e);
-        }
-        return true;
-    })
-        .subscribe(function (x) {
-        console.log(x);
-        console.log("CALCULATING ANGLE");
+    mouseDown.subscribe(function (x) {
+        shootBullet(ship.x, ship.y, ship.angle);
+    });
+    var mouseMove = Observable.fromEvent(document, "mousemove").map(function (_a) {
+        var clientX = _a.clientX, clientY = _a.clientY;
+        return ({ x: clientX, y: clientY });
+    });
+    // Handles the ship handle the mouse
+    mouseMove.subscribe(function (x) {
         var actualX = x.x - ship.x;
         var actualY = ship.y - x.y;
-        ship.angle = toDegrees(Math.atan(actualY / actualX));
+        var newAngle = toDegrees(Math.atan(actualX / actualY));
+        ship.angle =
+            actualY <= 0
+                ? 180 + newAngle
+                : newAngle;
         console.log(ship.angle);
         createAsteroid(x.x, x.y, "blue");
         ship.gElem.attr("transform", movement(ship.x, ship.y) + rotation(ship.angle));
     });
-}
-function getRotation() {
-    // ctx.translate(this.x, this.y);
-    // ctx.rotate(this.angle);
 }
 // the following simply runs your asteroids function on window load.  Make sure to leave it in place.
 if (typeof window != "undefined")
