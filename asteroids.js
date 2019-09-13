@@ -82,7 +82,7 @@ function asteroids() {
         .attr("vy2", "20")
         .attr("vx3", "0")
         .attr("vy3", "-20")
-        .attr("style", "fill:lime;stroke:purple;stroke-width:1");
+        .attr("style", "fill:white;stroke:black;stroke-width:1");
     // Game object containing global varables for key attributes of the game, which arent required for the ship
     // Such as level, game speed, whether the game is muted and the current score. Highscore is stored locally in the browser
     var gameObject = {
@@ -387,10 +387,11 @@ function asteroids() {
             var isActive = bullet.attr("isActive");
             if (isActive === "false") {
                 setInactive(bullet);
+                return false;
             }
-            return isActive !== "false";
+            return true;
         });
-        currentAsteroids = currentAsteroids.filter(function (asteroid) {
+        asteroids = currentAsteroids.filter(function (asteroid) {
             var isActive = asteroid.attr("isActive");
             if (isActive === "false") {
                 setInactive(asteroid);
@@ -645,8 +646,8 @@ var createBullet = function (shipX, shipY, shipAngle, svgCanvas, sounds) {
         .attr("x", bulletStartX)
         .attr("y", bulletStatY)
         .attr("angle", bulletAngle)
-        .attr("r", "3")
-        .attr("fill", "#FFFFFF")
+        .attr("r", "5")
+        .attr("fill", "#ffeb3b")
         .attr("transform", movement(bulletStartX, bulletStatY) + rotation(bulletAngle));
     return bullet;
 };

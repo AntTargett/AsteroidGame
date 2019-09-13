@@ -14,6 +14,8 @@
 // This works by having a 1 second interval that checks if the Ship has been hit, will update a variable after the one second interval goes off.
 // Alongside this, I used the advice given by Tim to use an Object to store key downs until key ups. This allows me to perform actions for multiple key presses
 // Such as moving and turning and shooting and moving.
+// Asteroids start at a random location with a random speed and direction. (Within ranges)
+// Also tried to use images, but caused issue with hit detection and were not responding properly to x y updates, etc.
 
 // In terms of using Functional Programming.
 // The application aims to use Functional Programming techniques, by trying to  restrict side-effects to the subscribe() call.
@@ -25,6 +27,7 @@
 // Also used functions to split up logic and for Seperation of concerns. 
 // Also tried to apply DRY principle by creating functions for repated code. 
 
+// NOTE: Play in full screen for better experiance. 
 // NOTE: Would refactor to different files. Thought it would be easier to leave in one file for marking, etc. 
 
 
@@ -148,7 +151,7 @@ function asteroids() {
         .attr("vy2", "20")
         .attr("vx3", "0")
         .attr("vy3", "-20")
-        .attr("style", "fill:lime;stroke:purple;stroke-width:1")
+        .attr("style", "fill:white;stroke:black;stroke-width:1")
     // Game object containing global varables for key attributes of the game, which arent required for the ship
     // Such as level, game speed, whether the game is muted and the current score. Highscore is stored locally in the browser
     const gameObject: GameObject = {
@@ -494,10 +497,11 @@ function asteroids() {
             const isActive = bullet.attr("isActive")
             if (isActive === "false") {
                 setInactive(bullet)
+                return false
             }
-            return isActive !== "false"
+            return true
         })
-        currentAsteroids = currentAsteroids.filter(asteroid => {
+        asteroids = currentAsteroids.filter(asteroid => {
             const isActive = asteroid.attr("isActive")
             if (isActive === "false") {
                 setInactive(asteroid)
@@ -798,8 +802,8 @@ const createBullet = (
         .attr("x", bulletStartX)
         .attr("y", bulletStatY)
         .attr("angle", bulletAngle)
-        .attr("r", "3")
-        .attr("fill", "#FFFFFF")
+        .attr("r", "5")
+        .attr("fill", "#ffeb3b")
         .attr(
             "transform",
             movement(bulletStartX, bulletStatY) + rotation(bulletAngle)
