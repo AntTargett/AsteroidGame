@@ -1,178 +1,36 @@
 // FIT2102 2019 Assignment 1
 // https://docs.google.com/document/d/1Gr-M6LTU-tfm4yabqZWJYg-zTjEVqHKKTCvePGCYsUA/edit?usp=sharing
 
-const intervalRocket = 0.5 * 1000 // milliseconds
+// GAME DOCUMENTATION
+// Game created is the asteroids game with some extended featues
+// Current features include, Shooting asteroids, Being hit by asteroids, Lives, Score, Highscore, Sound effects, Muting sound effects, Levels, wrapping of the space world,
+// being able to use WAD and arrow keys for movement as well as mouse for aiming and shooting.
+// Highscore works by storing the highest score in local storage and retreiving it when the user visits the page.
+// Sound effects work by loading in various sound effects, storing them in a sound object and calling it when required.
+// HandleLevels works by being called on the MainObservableInterval and checks to see if all asteroids have been destroyed.
+// If they have, the GameObject will be changed (i.e increase the level variable) which will then be used to determine speed of asteroid range, as well as
+// number of asteroids, etc.
+// Lives work by essentially being number of hits taken. Stored in the Ship Object. Decreases by 1 when hit. There is a grace period of 1 second after being hit
+// This works by having a 1 second interval that checks if the Ship has been hit, will update a variable after the one second interval goes off.
+// Alongside this, I used the advice given by Tim to use an Object to store key downs until key ups. This allows me to perform actions for multiple key presses
+// Such as moving and turning and shooting and moving.
 
-// let ship = { x:1,y:1 }
-// el.attr('style', transform: translate(${ship.x}px, ${ship.y}px))
-// ship.x++;ship.y++
-// el.attr('style', transform: translate(${ship.x}px, ${ship.y}px))
-// let ship = { x:1,y:1 }
-// el.attr('style', \`transform: translate(${ship.x}px, ${ship.y}px)\`)
-// ship.x++;ship.y++
-// el.attr('style', \`transform: translate(${ship.x}px, ${ship.y}px)\`)
+// In terms of using Functional Programming.
+// The application aims to use Functional Programming techniques, by trying to  restrict side-effects to the subscribe() call.
+// Functions that are impure are either called in subscribe or a function call from the function inside the subscribe
+// Alongisde this, I aimed to use pure functions where possible as well as make them as reusable as possible.
+// Generics where mostly not required for the functionality required.
+// Used ideas from lecture to limit amount of mutated logic required. See CreateAsteroids recursive function to create an asteroid array.
+// Tried to use pure functions where possible to generate strings. 
+// Also used functions to split up logic and for Seperation of concerns. 
+// Also tried to apply DRY principle by creating functions for repated code. 
 
-// turnRate = degrees/ms (ie. give it (degrees/s) / 1000)
-const updateAngle = (turnRate: number): any => (
-    timeDelta: any,
-    keysPressed: any
-) => (prevShip: any) => {
-    const a = 65
-    const d = 68
-    const directionKeysPressed = keysPressed & (a | d)
-    const direction =
-        directionKeysPressed === a ? -1 : directionKeysPressed === d ? 1 : 0
-    return {
-        ...prevShip,
-        angle:
-            prevShip.angle + (turnRate / 180) * Math.PI * direction * timeDelta
-    }
-}
-const circleTriangleCollision = (elem1: Elem, elem2: Elem) => {
-    return false
-}
+// NOTE: Would refactor to different files. Thought it would be easier to leave in one file for marking, etc. 
 
-// Pure function, returns whether or not a triangle and circle have collided
-const checkVertexCircle = (triangle: Elem, circle: Elem): Boolean => {
-    const vx1 = parseInt(triangle.attr("vx1"))
-    const v2x = parseInt(triangle.attr("vx2"))
-    const v3x = parseInt(triangle.attr("vx3"))
-    const v3y = parseInt(triangle.attr("vy3"))
-    const v1y = parseInt(triangle.attr("vy1"))
-    const v2y = parseInt(triangle.attr("vy2"))
-    const centrex = parseInt(circle.attr("x"))
-    const centrey = parseInt(circle.attr("y"))
-    const radius = parseInt(circle.attr("r"))
-    const c1x = vx1 - centrex
-    const c1y = v1y - centrey
 
-    if (Math.sqrt(c1x * c1x + c1y * c1y) <= radius) {
-        return true
-    }
 
-    const c2x = v2x - centrex
-    const c2y = v2y - centrey
 
-    if (Math.sqrt(c2x * c2x + c2y * c2y) <= radius) {
-        return true
-    }
-
-    const c3x = v3x - centrex
-    const c3y = v3y - centrey
-
-    if (Math.sqrt(c3x * c3x + c3y * c3y) <= radius) {
-        return true
-    }
-    return false
-}
-
-// Pure function, returns whether or not a triangle and circle have collided
-const rectCircleCollision = (rect: Ship, circle: Elem): Boolean => {
-    // const checkVertex = checkVertexCircle(rect, circle)
-    // if (checkVertex) {
-    //     console.log("COLLISION WITH SHIP CHECK VERTEX")
-
-    //     return true
-    // }
-    // const vx1 = parseInt(rect.attr("vx1"))
-    // const vx2 = parseInt(rect.attr("vx2"))
-    // const vx3 = parseInt(rect.attr("vx3"))
-    // const vy1 = parseInt(rect.attr("vy1"))
-    // const vy2 = parseInt(rect.attr("vy2"))
-    // const vy3 = parseInt(rect.attr("vy3"))
-    // const c1x = parseInt(circle.attr("x")) - vx1
-    // const c1y = parseInt(circle.attr("y")) - vy1
-    // const e1x = vx2 - vx1
-    // const e1y = vy2 - vy1
-
-    // const kVal = c1x * e1x + c1y * e1y
-    // if (kVal > 0) {
-    //     const length = Math.sqrt(e1x * e1x + e1y * e1y)
-    //     const newK = kVal / length
-    //     if (newK < length) {
-    //         if (Math.sqrt(c1x * c1x + c1y * c1y - newK * newK)) {
-    //             console.log("COLLISION WITH SHIP HERE")
-    //             return true
-    //         }
-    //     }
-    // }
-    // return false
-    const circleX = parseInt(circle.attr("x"))
-    const circleY = parseInt(circle.attr("y"))
-    const circleR = parseInt(circle.attr("r"))
-    const circleDistanceX = Math.abs(circleX - rect.x)
-    const cirleDistanceY = Math.abs(circleY - rect.y)
-
-    if (circleDistanceX > rect.width / 2 + circleR) {
-        return false
-    }
-    if (cirleDistanceY > rect.height / 2 + circleR) {
-        return false
-    }
-
-    if (circleDistanceX <= rect.width / 2) {
-        console.log("COLLISOPN1")
-
-        return true
-    }
-    if (cirleDistanceY <= rect.height / 2) {
-        console.log("COLLISOPN2")
-
-        return true
-    }
-
-    const cornerDistance_sq =
-        (circleDistanceX - rect.width / 2) ^
-        (2 + (cirleDistanceY - rect.height / 2)) ^
-        2
-    console.log("COLLISOPN", cornerDistance_sq <= (circleR ^ 2))
-    return cornerDistance_sq <= (circleR ^ 2)
-}
-
-//  Pure function that calculates circler collision
-function circleCollision(elem1: Elem, elem2: Elem): Boolean {
-    // Varables for element 1
-    const circle1R = parseInt(elem1.attr("r"))
-    const circle1X = parseInt(elem1.attr("x"))
-    const circle1y = parseInt(elem1.attr("y"))
-    // Variables for element 2
-    const circle2Y = parseInt(elem2.attr("y"))
-    const circle2X = parseInt(elem2.attr("x"))
-    const circle2R = parseInt(elem2.attr("r"))
-
-    const rTotal = (circle1R ? circle1R : 0) + circle2R
-    const x = circle1X - circle2X
-    const y = circle1y - circle2Y
-    const distance = Math.sqrt(x * x + y * y)
-
-    if (rTotal > distance) {
-        console.log(
-            "R TOTAL",
-            rTotal,
-            "Dist",
-            distance,
-            "Collision",
-            rTotal > distance
-        )
-        return true
-    } else {
-        return false
-    }
-}
-//Impure function. Mutes all sounds
-const muteSounds = (sounds: Object) => {
-    Object.values(sounds).forEach((sound: any) => {
-        sound.muted = true
-    })
-}
-//Impure function. Unmutes all sounds
-const unmuteSounds = (sounds: Object) => {
-    Object.values(sounds).forEach((sound: any) => {
-        sound.muted = false
-    })
-}
-const gameSpeed = 25
-
+// All types for the code. Chose Type by default, and interfaces when extending types
 type Ship = {
     element: Elem
     gElem: Elem
@@ -185,19 +43,34 @@ type Ship = {
     acceleration: number
     vel: Object
     lives: number
+    shipCollisionRecently: boolean
 }
 type CreateAsteroid = {
     x?: number
     y?: number
-    color: string
+    gameLevel: number
     asteroidNumber: number
 }
+// Extends the CreateAsteroid input type
+interface CreateAsteroidsType extends CreateAsteroid {
+    newAsteroidArray: Elem[]
+    numberOfAsteroids: number
+}
 type SoundObject = {
-    shootSound: any
-    backgroundSound: any
-    shipExplosionSound: any
-    asteroidExplosionSound: any
-    smallAsteroidExplosion: any
+    shootSound: SoundType
+    backgroundSound: SoundType
+    shipExplosionSound: SoundType
+    asteroidExplosionSound: SoundType
+    smallAsteroidExplosion: SoundType
+}
+type SoundType = {
+    play: Function
+    currentTime: number
+    src: string
+    loop: boolean
+    paused: boolean
+    muted: boolean
+    volume: number
 }
 type GameObject = {
     gameSpeed: number
@@ -205,105 +78,19 @@ type GameObject = {
     muted: boolean
     score: number
 }
-// Pure function
-function movement(x: number, y: number) {
-    return `translate(${x} ${y})`
-}
-// Pure function
-function toRadions(angle: number) {
-    return angle * (Math.PI / 180)
-}
-// Pure function
-function toDegrees(angle: number) {
-    return angle * (180 / Math.PI)
-}
-// Pure function
-function rotation(value: number) {
-    return `rotate (${value})`
-}
-// Pure function
-function isDead(ship: Ship) {
-    return ship.lives <= 0
-}
 
-// Pure function that returns the correct x or y value if it is outside of the boundary
-const wrap = (value: number, type: string, canvas: HTMLElement): number => {
-    const boundary = type === "x" ? canvas.clientWidth : canvas.clientHeight
-    if (value > boundary) {
-        return 0
-    } else if (value < 0) {
-        return boundary
-    } else {
-        return value
-    }
+type movementActionObject = {
+    [key: string]: string
 }
-// Impure function. Updates elemItem location using movement logic
-const moveElem = (elemItem: Elem, speed: number, canvas: HTMLElement) => {
-    const angle = parseInt(elemItem.attr("angle"))
-    const angleInRadions = toRadions(angle)
-    const origY = parseInt(elemItem.attr("y"))
-    const origX = parseInt(elemItem.attr("x"))
-    const calculatedX = wrap(
-        origX + speed * Math.sin(angleInRadions),
-        "x",
-        canvas
-    )
-    const calculatedY = wrap(
-        origY - speed * Math.cos(angleInRadions),
-        "y",
-        canvas
-    )
-    elemItem
-        .attr("x", calculatedX)
-        .attr("y", calculatedY)
-        .attr("transform", movement(calculatedX, calculatedY) + rotation(angle))
-}
-const emitAsteroidSoundEffect = (
-    asteroidNumber: number,
-    sounds: SoundObject
-) => {
-    if (asteroidNumber === 1) {
-        sounds.asteroidExplosionSound.currentTime = 0
-        sounds.asteroidExplosionSound.play()
-    } else {
-        sounds.smallAsteroidExplosion.currentTime = 0
-        sounds.smallAsteroidExplosion.play()
-    }
-}
-const getShipLivesText = (lives: number) => {
-    const life = " ❤️ "
-    return `Life: ${life.repeat(lives)} `
-}
-const getHighscoreString = (highscore: number) => {
-    return `Highscore: ${highscore} `
-}
-const getAndSetHighscoreNumber = (currentScore: number) => {
-    const currentHighscoreFromStorage = localStorage.getItem("highscore")
-    const highscoreNumber = currentHighscoreFromStorage
-        ? parseInt(currentHighscoreFromStorage)
-        : 0
-
-    if (currentScore > highscoreNumber) {
-        localStorage.setItem("highscore", currentScore.toString())
-        return currentScore
-    } else {
-        return highscoreNumber
-    }
-}
-// Updates score text
-const updateTextElem = (text: string, textElem: Elem) => {
-    textElem.elem.innerHTML = text
-}
-const getScoreText = (newScore: number) => {
-    return `Score: ${newScore}`
-}
+// Main game is called to start the game
 function asteroids() {
     // Getting canvas (Really an svg)
     const svg = document.getElementById("canvas")!
-    // Bullets and asteroid arrays are declared as lets so they can be redefined. This is required to reeduce number of bullets and asteroids
+    // Bullets and asteroid arrays are declared as lets so they can be redefined. This is required to reduce number of bullets and asteroids
     let bullets: Elem[] = []
     let asteroids: Elem[] = []
-
+    // Stores movement values for the ship. Used to be able to hold down keys
+    const movementObject: any = {}
     // Sounds object that holds all the sound references
     const sounds = {
         shootSound: document.createElement("audio"),
@@ -312,16 +99,10 @@ function asteroids() {
         asteroidExplosionSound: document.createElement("audio"),
         smallAsteroidExplosion: document.createElement("audio")
     }
-    // Setting sounds
-    sounds.backgroundSound.src = "assets/backgroundSound.wav"
-    sounds.backgroundSound.loop = true
-    sounds.backgroundSound.volume = 0.4
-    sounds.backgroundSound.play()
-    sounds.shootSound.src = "assets/shoot.wav"
-    sounds.shipExplosionSound.src = "assets/explosion.wav"
-    sounds.asteroidExplosionSound.src = "assets/asteroidExplosion.wav"
-    sounds.smallAsteroidExplosion.src = "assets/smallerExplosion.wav"
+    //Impure function to set sounds sources and volue, etc
+    setSoundInitialSettings(sounds)
 
+    // Elements to display text on the SVG.
     const scoreElem = new Elem(svg, "text")
         .attr("font-size", "20")
         .attr("fill", "white")
@@ -343,15 +124,22 @@ function asteroids() {
         .attr("fill", "white")
         .attr("x", svg.clientWidth - 150)
         .attr("y", 20)
+    let gameOverElem = new Elem(svg, "text")
+    let resetInstructionsElem = new Elem(svg, "text")
+    let helperInstructions = new Elem(svg, "text")
+        .attr("font-size", "20")
+        .attr("fill", "white")
+        .attr("x", svg.clientWidth / 2 - 400)
+        .attr("y", svg.clientHeight / 2 + 200)
+
     // make a group for the spaceship and a transform to move it and rotate it
     // to animate the spaceship you will update the transform property
-
     const g = new Elem(svg, "g").attr(
         "transform",
-        "translate(300 300) rotate(170)"
+        "translate(300 300) rotate(0)"
     )
     // create a polygon shape for the space ship as a child of the transform group
-    const element = new Elem(svg, "polygon", g.elem)
+    const shipElement = new Elem(svg, "polygon", g.elem)
         .attr("points", "-15,20 15,20 0,-20")
         .attr("shape", "triangle")
         .attr("vx1", "-15")
@@ -361,16 +149,17 @@ function asteroids() {
         .attr("vx3", "0")
         .attr("vy3", "-20")
         .attr("style", "fill:lime;stroke:purple;stroke-width:1")
-    // Muted is required to be a let as it needs to be mutated
+    // Game object containing global varables for key attributes of the game, which arent required for the ship
+    // Such as level, game speed, whether the game is muted and the current score. Highscore is stored locally in the browser
     const gameObject: GameObject = {
-        level: 1,
+        level: 0,
         gameSpeed: 25,
         muted: false,
         score: 0
     }
     // Ship object to store information that will need to be updated throughout the game
     const ship: Ship = {
-        element,
+        element: shipElement,
         gElem: g,
         width: 30,
         height: 30,
@@ -380,334 +169,667 @@ function asteroids() {
         dead: false,
         acceleration: 0.1,
         vel: { x: 0, y: 0 },
-        lives: 3
+        lives: 3,
+        shipCollisionRecently: true
     }
-    updateTextElem("Level: 1", levelElem)
-    updateTextElem(getShipLivesText(ship.lives), lifeElem)
-    updateTextElem(getScoreText(gameObject.score), scoreElem)
+    // Text for game instructions
+    const gameInstructionsText =
+        "Use W, A, D or Arrow Keys. Also can use Mouse to aim/shoot. Space to Shoot. M to mute and unmute"
+    // Text for resetInstructions
+    const resetInsturctions = "Press R to restart the game"
+    // Functions to update the Text elements at the start of the game
+    updateTextElem(createDisplayText("Level", gameObject.level), levelElem)
+    updateTextElem(createShipLivesText(ship.lives), lifeElem)
+    updateTextElem(createDisplayText("Score", gameObject.score), scoreElem)
     updateTextElem(
-        getHighscoreString(getAndSetHighscoreNumber(gameObject.score)),
+        createDisplayText(
+            "Highscore",
+            getAndSetHighscoreNumber(gameObject.score)
+        ),
         highScoreElem
     )
-    // const shipObservable = ship.observe()
-
+    updateTextElem(gameInstructionsText, helperInstructions)
+    // Keydown observable
     const keydownObservable = Observable.fromEvent<KeyboardEvent>(
         document,
         "keydown"
     )
+    // Keyupobservable
     const keyupObservable = Observable.fromEvent<KeyboardEvent>(
         document,
         "keyup"
     )
 
-    // Creates a bullet witht the current direction of the ship
-    function shootBullet(shipX: number, shipY: number, shipAngle: number) {
-        const bulletStartX = shipX
-        const bulletStatY = shipY
-        const bulletAngle = shipAngle
-        sounds.shootSound.currentTime = 0
-        sounds.shootSound.play()
-        bullets = bullets.concat(
-            new Elem(svg, "circle")
-                .attr("id", "bullet")
-                .attr("shape", "circle")
-                .attr("isActive", "true")
-                .attr("timer", 50)
-                .attr("x", bulletStartX)
-                .attr("y", bulletStatY)
-                .attr("angle", bulletAngle)
-                .attr("r", "3")
-                .attr("fill", "#FFFFFF")
-                .attr(
-                    "transform",
-                    movement(bulletStartX, bulletStatY) + rotation(bulletAngle)
-                )
-        )
+    // Function to reset game state. Impure. Called in a subscribe
+    const resetGame = () => {
+        gameObject.level = 0
+        gameObject.score = 0
+        ship.x = 300
+        ship.y = 300
+        ship.angle = 0
+        ship.dead = false
+        ship.acceleration = 0.1
+        ship.vel = { x: 0, y: 0 }
+        ship.lives = 3
+        ship.shipCollisionRecently = true
+        ship.element.attr("isActive", "true")
+        updateShipPosition(ship, 300, 300)
+        updateShipAngle(ship, 0)
+        updateTextElem(createDisplayText("Score", 0), scoreElem)
+        updateTextElem(createShipLivesText(3), lifeElem)
+        updateTextElem(createDisplayText("Level", 0), levelElem)
+        updateTextElem("", gameOverElem)
+        updateTextElem(gameInstructionsText, helperInstructions)
+        updateTextElem("", resetInstructionsElem)
+        resetArrays(bullets, asteroids)
     }
 
-    function createAsteroid({ x, y, color, asteroidNumber }: CreateAsteroid) {
-        const canvas: any = document.getElementById("canvas")
-        if (!canvas) throw "Couldn't get canvas element!"
-        const canvasWidth = svg.clientWidth
-        const canvasHeight = svg.clientHeight
-
-        // xmlns="http://www.w3.org/2000/svg"
-        // xmlns:xlink="http://www.w3.org/1999/xlink"
-        // id="test1"
-        // height="200px"
-        // width="200px">
-        //     <image
-        //     id="testimg1"
-        //     src="./assets/m.svg"
-        //     width="100"
-        //     height="100"
-        //     x="0"
-        //     y="0"/>
-        // </svg>
-        const asteroidX = x ? x : canvasWidth * Math.random()
-        const asteroidY = y ? y : canvasHeight * Math.random()
-        const speed = 5 * Math.random()
-        const angle = 360 * Math.random()
-        const diameter = 100 / asteroidNumber
-        const asteroid = new Elem(canvas, "circle")
-            .attr("x", asteroidX.toString())
-            .attr("y", asteroidY.toString())
-            .attr("isActive", "true")
-            .attr("asteroidNumber", asteroidNumber)
-            .attr("shape", "circle")
-            .attr("width", diameter)
-            .attr("height", diameter)
-            .attr("angle", angle)
-            .attr("speed", speed <= 1 ? 2 : speed)
-            .attr("r", diameter / 2)
-            .attr("fill", "#FFFFF")
-        // const test = new Elem(canvas, "image")
-        //     .attr("x", asteroidX.toString())
-        //     .attr("y", asteroidY.toString())
-        //     .attr("href", "assets/m.svg")
-        //     .attr("isActive", "true")
-        //     .attr("width", 100)
-        //     .attr("height", 100)
-        //     .attr("shape", "circle")
-        //     .attr("speed", speed >= 1 ? speed : 2)
-        //     // .attr("speed", 0)
-
-        //     .attr("angle", angle)
-        //     .attr("r", "45")
-
-        //asteroid.elem.appendChild(test)
-        asteroids = asteroids.concat(asteroid)
-        // asteroids.push(test)
-    }
-
-    const updateCurrentVelocity = () => {}
-
-    const updatePos: any = (prevShip: any) => {
-        return {
-            x: prevShip.x + (prevShip.vel.x * gameSpeed) / 1000,
-            y: prevShip.y + (prevShip.vel.y * gameSpeed) / 1000
+    const handleShipCollision = (ship: Ship) => {
+        playSound(sounds.shipExplosionSound)
+        ship.lives = ship.lives - 1
+        ship.shipCollisionRecently = true
+        if (ship.lives >= 0) {
+            updateTextElem(createShipLivesText(ship.lives), lifeElem)
+        }
+        if (ship.lives <= 0) {
+            ship.dead = true
+            ship.element.attr("isActive", "false")
         }
     }
-    // Handles ship actions such as movement.
-    const performShipActions = (movementActionObject: any) => {
-        for (var key in movementActionObject) {
-            if (
-                movementActionObject.hasOwnProperty(key) &&
-                movementActionObject[key]
-            ) {
-                const element = key
-                if (element === "d" || element === "a") {
-                    const direction = element === "d" ? 1 : -1
-                    ship.angle = ship.angle + direction * 10
-                    ship.gElem.attr(
-                        "transform",
-                        movement(ship.x, ship.y) + rotation(ship.angle)
-                    )
-                } else if (element === "w") {
-                    const angleInRadions = toRadions(ship.angle)
-                    const calculationX = ship.x + 10 * Math.sin(angleInRadions)
-                    const calculationY = ship.y - 10 * Math.cos(angleInRadions)
-                    ship.x = wrap(calculationX, "x", svg)
-                    ship.y = wrap(calculationY, "y", svg)
-                    const newPositions = updatePos(ship)
-                    //console.log(newPositions)
-                    ship.gElem.attr(
-                        "transform",
-                        movement(ship.x, ship.y) + rotation(ship.angle)
-                    )
-                }
-            }
-        }
-    }
+    // Main observable for move actions for asteroids, ship and bullets.
+    const mainObservable = Observable.interval(gameObject.gameSpeed)
+    // Observable for mousedown events. Used for being able to shoot with mouse click
+    const mouseDown = Observable.fromEvent<MouseEvent>(
+        document,
+        "mousedown"
+    ).map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))
 
-    const movementObject: any = {}
-
-    const checkShipCollision = (ship: Ship, currAsteroid: Elem) => {
-        const hasCollision = rectCircleCollision(ship, currAsteroid)
-        if (hasCollision) {
-            // sounds.shipExplosionSound.currentTime = 0
-            sounds.shipExplosionSound.play()
-            ship.lives = ship.lives - 1
-            if (ship.lives >= 0) {
-                updateTextElem(getShipLivesText(ship.lives), lifeElem)
-            }
-            if (ship.lives <= 0) {
-                ship.element.elem.remove()
-            }
-        }
-    }
-
-    const mainObservable = Observable.interval(gameSpeed)
-
-    // Observable to shoot bullets. Slower
-    const delayedBulletObservable = Observable.interval(gameSpeed * 5)
-    delayedBulletObservable.subscribe(e => {
-        if (movementObject[" "]) {
-            shootBullet(ship.x, ship.y, ship.angle)
+    // Mouse move used to track movement of mouse and point the ship in the correct direction
+    const mouseMove = Observable.fromEvent<MouseEvent>(
+        document,
+        "mousemove"
+    ).map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))
+    // Observable to shoot bullets. Slower than main observable. Aim is to reduce consecutive bullet shooting
+    const delayedBulletObservable = Observable.interval(
+        gameObject.gameSpeed * 10
+    )
+    // Hit observable is set to 1 second intervals to handle updating shipcollisionrecently. Aim is to give the ship some invulnerability time
+    const hitObservable = Observable.interval(1000)
+    hitObservable.subscribe(e => {
+        if (ship.shipCollisionRecently) {
+            ship.shipCollisionRecently = false
         }
     })
-    // Observable to shoot bullets. Slower
-    const cleanArrayObservable = Observable.interval(1000)
+    // Observable to clean arrays every 4 seconds. Gives time between levels. Also makes it so I am not iterating through giant levels if a player
+    // plays for some time
+    const cleanArrayObservable = Observable.interval(4000)
+    mainObservable.subscribe(e => {
+        if (isDead(ship) && !gameOverElem.elem.innerHTML) {
+            handleGameOver()
+        }
+    })
+    // Filters if ship is dead
+    delayedBulletObservable
+        .filter(() => !isDead(ship))
+        .subscribe(e => {
+            if (movementObject[" "]) {
+                bullets = bullets.concat(
+                    createBullet(ship.x, ship.y, ship.angle, svg, sounds)
+                )
+            }
+        })
+
     cleanArrayObservable.subscribe(e => {
         cleanArrays(bullets, asteroids)
     })
+    // Subscribes to the main observable to handle levels and performShipActions.
     mainObservable
-        // .takeUntil(mainObservable.filter(() => isDead(ship)))
+        .filter(() => !isDead(ship))
         .subscribe(e => {
             handleLevels(asteroids, gameObject)
-            performShipActions(movementObject)
+            performShipActions(movementObject, ship, svg)
+            // To handle playing background sound after refreshing
+            if (
+                sounds.backgroundSound.paused &&
+                sounds.backgroundSound.readyState >= 1
+            ) {
+                playSound(sounds.backgroundSound)
+            }
+        })
+    // Adds keydowns to the movementObject. Actions that wont be prevented by ship dying
+    keydownObservable
+        .filter(() => !isDead(ship))
+        .subscribe(e => {
+            if (e.key === " " && !movementObject[e.key]) {
+                bullets = bullets.concat(
+                    createBullet(ship.x, ship.y, ship.angle, svg, sounds)
+                )
+            }
         })
 
+    // Handles bullet movement
+    mainObservable
+        .filter(() => !isDead(ship))
+        .subscribe(x => {
+            // Goes through each bullet and performs logic to move it
+            bullets.forEach(bullet => {
+                //Impure function to move bullet element
+                moveElem(bullet, 10, svg)
+                // Impure function to handle checking collisions with asteroids and bullet timer
+                handleBulletLogic(bullet, asteroids)
+            })
+            asteroids.forEach(asteroid => {
+                // Function that updates the asteroid. Impure function is called (Has sideeffects)
+                moveElem(asteroid, parseInt(asteroid.attr("speed")), svg)
+                const isActive = asteroid.attr("isActive")
+
+                if (isActive === "true" && !isDead(ship)) {
+                    // Pure function.
+                    const hasCollision = rectCircleCollision(ship, asteroid)
+                    if (hasCollision) {
+                        if (!collisionRecently(ship)) {
+                            // Function that updates the asteroid. Impure function is called (Has sideeffects)
+                            handleShipCollision(ship)
+                        }
+                    }
+                }
+            })
+        })
+
+    // Adds keydowns to the movementObject. This is seperate from the other subscribe as Actions that wont be prevented by ship dying
+    keydownObservable.subscribe(e => {
+        movementObject[e.key] = true
+        updateTextElem("", helperInstructions)
+        const muted = gameObject.muted
+        // m key for muting
+        if (e.key === "m" && !muted) {
+            gameObject.muted = true
+            muteSounds(sounds)
+        } else if (e.key === "m" && muted) {
+            gameObject.muted = false
+            unmuteSounds(sounds)
+        } else if (e.key === "r") {
+            resetGame()
+        }
+    })
+    // Makes keys false in the movementObject so that they will no longer be called.
+    keyupObservable.subscribe(e => {
+        movementObject[e.key] = false
+    })
+    // mousedown subscribe to shoot bullets
+    mouseDown
+        .filter(() => !isDead(ship))
+        .subscribe(x => {
+            // instead of mutating bullets it creates a new bullet array
+            bullets = bullets.concat(
+                createBullet(ship.x, ship.y, ship.angle, svg, sounds)
+            )
+        })
+
+    // Subscribe to update mouse angle based on cursor position.
+    mouseMove.subscribe(x => {
+        const actualX = x.x - ship.x
+        const actualY = ship.y - x.y
+        const calculatedAngle = toDegrees(Math.atan(actualX / actualY))
+        const newAngle = actualY <= 0 ? 180 + calculatedAngle : calculatedAngle
+        // Impure function to update ship angle
+        updateShipAngle(ship, newAngle)
+    })
+    // Function calls other impure functions to update the score, highscore elements, etc
+    // The function itself is not impure.
     const bulletAsteroidCollision = (
         bullet: Elem,
         asteroid: Elem,
         game: GameObject
     ) => {
         const newScore = game.score + 100
+        // Mutates game score to be the new Score
         game.score = newScore
-        updateTextElem(getScoreText(newScore), scoreElem)
+        // Updates the text elements to display the new score
+        updateTextElem(createDisplayText("Score", newScore), scoreElem)
         updateTextElem(
-            getHighscoreString(getAndSetHighscoreNumber(newScore)),
+            createDisplayText("Highscore", getAndSetHighscoreNumber(newScore)),
             highScoreElem
         )
+        // Gets the asteroid number
         const asteroidNumber = parseInt(asteroid.attr("asteroidNumber"))
+        // Emits sound based on asteroid number (Type)
         emitAsteroidSoundEffect(asteroidNumber, sounds)
-        if (asteroidNumber === 1) {
-            sounds.asteroidExplosionSound.currentTime = 0
-            sounds.asteroidExplosionSound.play()
-        } else {
-            sounds.smallAsteroidExplosion.currentTime = 0
-            sounds.smallAsteroidExplosion.play()
-        }
+        // If less than three it will spawn new smaller asteroids
         if (asteroidNumber < 3) {
             const currentX = parseInt(asteroid.attr("x"))
             const currentY = parseInt(asteroid.attr("y"))
-            for (var i = 0; i <= asteroidNumber * 2; i++) {
-                createAsteroid({
-                    x: currentX,
-                    y: currentY,
-                    color: "blue",
-                    asteroidNumber: asteroidNumber + 1
-                })
-            }
+            asteroids = createAsteroids({
+                newAsteroidArray: asteroids,
+                numberOfAsteroids: asteroidNumber * 2,
+                x: currentX,
+                y: currentY,
+                gameLevel: gameObject.level,
+                asteroidNumber: asteroidNumber + 1
+            })
         }
-        asteroid.attr("isActive", "false")
-        bullet.attr("isActive", "false")
-        bullet.elem.remove()
-        asteroid.elem.remove()
+        // Sets asteroid and bullet to inactive and removes from canvas
+        setInactive(asteroid)
+        setInactive(bullet)
     }
 
-    const handleBulletLogic = (bullets: Elem[], asteroids: Elem[]) => {
-        return bullets.filter(bullet => {
-            const currTimer = parseInt(bullet.attr("timer")) - 1
-            const bulletActive = bullet.attr("isActive")
-            if (currTimer <= 0 || bulletActive === "false") {
-                // Remove bullet from canvas and return false to filter from array
-                bullet.elem.remove()
-                return false
-            }
-            // impure function to move bullet.
-            moveElem(bullet, 10, svg)
-            bullet.attr("timer", currTimer)
-
-            asteroids.forEach((asteroid: any) => {
-                const isActive = asteroid.attr("isActive")
-                if (isActive !== "false" && bulletActive !== "false") {
-                    // Checks for collision between current bullet and asteroid.
-                    // Pure function
-                    const hasCollision = circleCollision(bullet, asteroid)
-                    // If there is a collision, updated score, remove bullet and asteroid. Set both to false.
-                    if (hasCollision) {
-                        bulletAsteroidCollision(bullet, asteroid, gameObject)
-                    }
-                }
-            })
-
-            return true
-        })
-    }
-
-    // Handles bullet movement
-    mainObservable
-        // .takeUntil(bulletObservable.filter(() => isDead(ship)))
-        .subscribe(x => {
-            // Goes through each bullet and performs logic to move it
-            bullets = handleBulletLogic(bullets, asteroids)
-            asteroids.forEach(asteroid => {
-                moveElem(asteroid, parseInt(asteroid.attr("speed")), svg)
-                const isActive = asteroid.attr("isActive")
-                if (isActive === "true") {
-                    checkShipCollision(ship, asteroid)
-                }
-            })
-        })
-
-    // Adds keydowns to the movementObject
-    keydownObservable.subscribe(e => {
-        movementObject[e.key] = true
-        const muted = gameObject.muted
-        if (e.key === "m" && !muted) {
-            gameObject.muted = true
-            console.log("MUTE")
-            muteSounds(sounds)
-        } else if (e.key === "m" && muted) {
-            gameObject.muted = false
-            console.log("UNMUTE")
-            unmuteSounds(sounds)
+    // Impure function. Iterates through all the asteroids and checks for collision with bullet.
+    // If there is a collision, marks both as inactive and calls bulletAsteroidCollision
+    const handleBulletLogic = (bullet: Elem, asteroids: Elem[]) => {
+        const currTimer = parseInt(bullet.attr("timer")) - 1
+        const bulletActive = bullet.attr("isActive")
+        if (currTimer <= 0 || bulletActive === "false") {
+            // Remove bullet from canvas and return false to filter from array. Impure function call
+            setInactive(bullet)
         }
-    })
-    // Makes keys false in the movementObject
-    keyupObservable.subscribe(e => {
-        movementObject[e.key] = false
-    })
-    const cleanArrays = (currentBullets: Elem[], currentAsteroids: Elem[]) => {
-        bullets = currentBullets.filter(bullet => {
-            const isActive = bullet.attr("isActive")
-            console.log("FILTER", isActive === "false")
-            return isActive !== "false"
-        })
-        asteroids = asteroids.filter(asteroid => {
+        bullet.attr("timer", currTimer)
+        asteroids.forEach((asteroid: any) => {
             const isActive = asteroid.attr("isActive")
-            return isActive !== "false"
+            if (isActive !== "false" && bulletActive !== "false") {
+                // Checks for collision between current bullet and asteroid.
+                // Pure function
+                const hasCollision = circleCollision(bullet, asteroid)
+                // If there is a collision, updated score, remove bullet and asteroid. Set both to false.
+                if (hasCollision) {
+                    bulletAsteroidCollision(bullet, asteroid, gameObject)
+                }
+            }
         })
     }
+    // Impure function to display game over text.
+    const handleGameOver = () => {
+        // Removes and recreates the svg to make it so it is the topmost element
+        resetInstructionsElem.elem.remove()
+        gameOverElem.elem.remove()
+        gameOverElem = new Elem(svg, "text")
+            .attr("font-size", "100")
+            .attr("fill", "red")
+            .attr("x", svg.clientWidth / 2 - 300)
+            .attr("y", svg.clientHeight / 2)
+        resetInstructionsElem = new Elem(svg, "text")
+            .attr("font-size", "20")
+            .attr("fill", "white")
+            .attr("x", svg.clientWidth / 2 - 100)
+            .attr("y", svg.clientHeight / 2 + 50)
+        updateTextElem("GAME OVER", gameOverElem)
+        updateTextElem(resetInsturctions, resetInstructionsElem)
+    }
 
-    const mouseDown = Observable.fromEvent<MouseEvent>(
-        document,
-        "mousedown"
-    ).map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))
-
-    mouseDown.subscribe(x => {
-        shootBullet(ship.x, ship.y, ship.angle)
-    })
-
-    const mouseMove = Observable.fromEvent<MouseEvent>(
-        document,
-        "mousemove"
-    ).map(({ clientX, clientY }) => ({ x: clientX, y: clientY }))
-
-    // Handles the ship handle the mouse
-    mouseMove.subscribe(x => {
-        const actualX = x.x - ship.x
-        const actualY = ship.y - x.y
-        const newAngle = toDegrees(Math.atan(actualX / actualY))
-        ship.angle = actualY <= 0 ? 180 + newAngle : newAngle
-
-        //createAsteroid(x.x, x.y, "blue")
-        ship.gElem.attr(
-            "transform",
-            movement(ship.x, ship.y) + rotation(ship.angle)
-        )
-    })
+    // Function that handles when the level should be updated. Condition is when asteroids array is empty. i.e all been destryoed by player
     const handleLevels = (currentAsteroids: Elem[], gameObject: GameObject) => {
         if (currentAsteroids.length === 0) {
             gameObject.level += 1
-            gameObject.gameSpeed = gameObject.gameSpeed * 2
-            for (var i = 0; i < gameObject.level * 2; i++) {
-                createAsteroid({ x: 1, y: 2, color: "blue", asteroidNumber: 1 })
+            // So the player has a second of invul after asteroids spawn
+            ship.shipCollisionRecently = true
+            // Updates level display
+            updateTextElem(
+                createDisplayText("Level", gameObject.level),
+                levelElem
+            )
+            // Creates asteroids based on game level * 2.
+            asteroids = createAsteroids({
+                newAsteroidArray: asteroids,
+                numberOfAsteroids: gameObject.level * 2,
+                gameLevel: gameObject.level,
+                asteroidNumber: 1
+            })
+        }
+    }
+    // Function to reset arrays, goes through each bullet and asteroid and marks inactive (removes and cleans up)
+    // Then sets arrays to empty. Used to help reset game after death
+    const resetArrays = (currentBullets: Elem[], currentAsteroids: Elem[]) => {
+        currentBullets.forEach(bullet => {
+            setInactive(bullet)
+        })
+        bullets = []
+        asteroids.forEach(asteroid => {
+            setInactive(asteroid)
+        })
+        asteroids = []
+    }
+    // Clean up arrays called every 4 seconds from a subscribe to clean up elements no longer needed.
+    // i.e when the isActive for bullet and asteroid is set to false
+    const cleanArrays = (currentBullets: Elem[], currentAsteroids: Elem[]) => {
+        bullets = currentBullets.filter(bullet => {
+            const isActive = bullet.attr("isActive")
+            if (isActive === "false") {
+                setInactive(bullet)
+            }
+            return isActive !== "false"
+        })
+        currentAsteroids = currentAsteroids.filter(asteroid => {
+            const isActive = asteroid.attr("isActive")
+            if (isActive === "false") {
+                setInactive(asteroid)
+                return false
+            }
+            return true
+        })
+    }
+}
+// Handles ship actions for movement.
+const performShipActions = (
+    movementActionObject: movementActionObject,
+    ship: Ship,
+    svgCanvas: HTMLElement
+) => {
+    for (var key in movementActionObject) {
+        if (
+            movementActionObject.hasOwnProperty(key) &&
+            movementActionObject[key]
+        ) {
+            const element = key
+            if (
+                element === "d" ||
+                element === "a" ||
+                element === "ArrowLeft" ||
+                element === "ArrowRight"
+            ) {
+                const direction =
+                    element === "d" || element === "ArrowRight" ? 1 : -1
+                updateShipAngle(ship, ship.angle + direction * 10)
+            } else if (element === "w" || element === "ArrowUp") {
+                // Calculates angle based on position. Used trigonometry
+                const angleInRadions = toRadions(ship.angle)
+                const calculationX = ship.x + 10 * Math.sin(angleInRadions)
+                const calculationY = ship.y - 10 * Math.cos(angleInRadions)
+
+                // Impure function to update ship x and y values. wrap needs to wrap and x and y values to make sure they are correct
+                updateShipPosition(
+                    ship,
+                    wrap(calculationX, "x", svgCanvas),
+                    wrap(calculationY, "y", svgCanvas)
+                )
             }
         }
     }
+}
+// Pure Function to return if the ship has collided recently
+const collisionRecently = (ship: Ship) => {
+    return ship.shipCollisionRecently
+}
+//Impure function. Mutes all sounds
+// Updates values in sound object
+const muteSounds = (sounds: SoundObject) => {
+    Object.values(sounds).forEach((sound: SoundType) => {
+        sound.muted = true
+    })
+}
+
+//Impure function. Unmutes all sounds
+// Updates values in sound object
+const unmuteSounds = (sounds: SoundObject) => {
+    Object.values(sounds).forEach((sound: SoundType) => {
+        sound.muted = false
+    })
+}
+
+// Pure function, returns whether or not a triangle and circle have collided https://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle For some of the maths required
+const rectCircleCollision = (rect: Ship, circle: Elem): Boolean => {
+    const circleX = parseInt(circle.attr("x"))
+    const circleY = parseInt(circle.attr("y"))
+    const circleR = parseInt(circle.attr("r"))
+    const circleDistanceX = Math.abs(circleX - rect.x)
+    const cirleDistanceY = Math.abs(circleY - rect.y)
+    if (circleDistanceX > rect.width / 2 + circleR) {
+        return false
+    }
+    if (cirleDistanceY > rect.height / 2 + circleR) {
+        return false
+    }
+
+    if (circleDistanceX <= rect.width / 2) {
+        return true
+    }
+    if (cirleDistanceY <= rect.height / 2) {
+        return true
+    }
+
+    const cornerDistance_sq =
+        (circleDistanceX - rect.width / 2) ^
+        (2 + (cirleDistanceY - rect.height / 2)) ^
+        2
+    return cornerDistance_sq <= (circleR ^ 2)
+}
+
+//  Pure function that calculates circler collision. Used https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection to work out maths required
+function circleCollision(elem1: Elem, elem2: Elem): Boolean {
+    // Varables for element 1
+    const circle1R = parseInt(elem1.attr("r"))
+    const circle1X = parseInt(elem1.attr("x"))
+    const circle1y = parseInt(elem1.attr("y"))
+    // Variables for element 2
+    const circle2Y = parseInt(elem2.attr("y"))
+    const circle2X = parseInt(elem2.attr("x"))
+    const circle2R = parseInt(elem2.attr("r"))
+
+    const rTotal = (circle1R ? circle1R : 0) + circle2R
+    const x = circle1X - circle2X
+    const y = circle1y - circle2Y
+    const distance = Math.sqrt(x * x + y * y)
+    if (rTotal > distance) {
+        return true
+    } else {
+        return false
+    }
+}
+
+// Pure function to generate translate string
+function movement(x: number, y: number): string {
+    return `translate(${x}, ${y})`
+}
+// Pure function to convert to radions for trig
+function toRadions(angle: number): number {
+    return angle * (Math.PI / 180)
+}
+// Pure function to convert to degrees for trig
+function toDegrees(angle: number): number {
+    return angle * (180 / Math.PI)
+}
+// Pure function to generate rotate string
+function rotation(value: number): string {
+    return `rotate (${value})`
+}
+// Pure function to get boolean value for if the ship is dead
+function isDead(ship: Ship): boolean {
+    return ship.lives <= 0
+}
+
+// Pure function that returns the correct x or y value if it is outside of the boundary
+const wrap = (value: number, type: string, canvas: HTMLElement): number => {
+    const boundary = type === "x" ? canvas.clientWidth : canvas.clientHeight
+    if (value > boundary) {
+        return 0
+    } else if (value < 0) {
+        return boundary
+    } else {
+        return value
+    }
+}
+// Impure function. Mutates elemItem location using movement logic. Uses trigonometry
+const moveElem = (elemItem: Elem, speed: number, canvas: HTMLElement): void => {
+    const angle = parseInt(elemItem.attr("angle"))
+    const angleInRadions = toRadions(angle)
+    const origY = parseInt(elemItem.attr("y"))
+    const origX = parseInt(elemItem.attr("x"))
+    const calculatedX = wrap(
+        origX + speed * Math.sin(angleInRadions),
+        "x",
+        canvas
+    )
+    const calculatedY = wrap(
+        origY - speed * Math.cos(angleInRadions),
+        "y",
+        canvas
+    )
+    elemItem
+        .attr("x", calculatedX)
+        .attr("y", calculatedY)
+        .attr("transform", movement(calculatedX, calculatedY) + rotation(angle))
+}
+// Takes in a asteroid number and calls the play function for the correct asteroid sound
+const emitAsteroidSoundEffect = (
+    asteroidNumber: number,
+    sounds: SoundObject
+) => {
+    if (asteroidNumber === 1) {
+        sounds.asteroidExplosionSound.currentTime = 0
+        sounds.asteroidExplosionSound.play()
+    } else {
+        sounds.smallAsteroidExplosion.currentTime = 0
+        sounds.smallAsteroidExplosion.play()
+    }
+}
+// Pure function to get Life text
+const createShipLivesText = (lives: number) => {
+    const life = " ❤️ "
+    return `Life: ${life.repeat(lives)} `
+}
+// Pure function to get both highscore text, score text and level text. Reusable
+const createDisplayText = (startingText: String, displayValue: number) => {
+    return `${startingText}: ${displayValue} `
+}
+
+// Impure. Gets the highscore from the localstorage. If the currentscore is greater than the highscore it sets the highscore to the current score
+const getAndSetHighscoreNumber = (currentScore: number) => {
+    const currentHighscoreFromStorage = localStorage.getItem("highscore")
+    const highscoreNumber = currentHighscoreFromStorage
+        ? parseInt(currentHighscoreFromStorage)
+        : 0
+
+    if (currentScore > highscoreNumber) {
+        localStorage.setItem("highscore", currentScore.toString())
+        return currentScore
+    } else {
+        return highscoreNumber
+    }
+}
+// Updates score text. Impure.
+const updateTextElem = (text: string, textElem: Elem) => {
+    textElem.elem.innerHTML = text
+}
+//Impure. Sets an element to inactive by removing it and marking it as isActive false
+const setInactive = (element: Elem) => {
+    element.attr("isActive", "false")
+    element.elem.remove()
+}
+// Takes any sound and calls the play function
+const playSound = (sound: SoundType, time?: number) => {
+    if (time !== undefined) {
+        sound.currentTime = time
+    }
+    sound.play()
+}
+// PURE Recursive pure function to create an array of asteroids
+const createAsteroids = ({
+    newAsteroidArray,
+    numberOfAsteroids,
+    ...rest
+}: CreateAsteroidsType): Elem[] => {
+    return numberOfAsteroids > 1
+        ? createAsteroids({
+              newAsteroidArray: newAsteroidArray.concat(createAsteroid(rest)),
+              numberOfAsteroids: numberOfAsteroids - 1,
+              ...rest
+          })
+        : newAsteroidArray.concat(createAsteroid(rest))
+}
+// Creates Asteroid element and adds it to the canvas svg. Returns the asteroid
+function createAsteroid({ x, y, gameLevel, asteroidNumber }: CreateAsteroid) {
+    const canvas: HTMLElement | null = document.getElementById("canvas")
+
+    if (!canvas) throw "Couldn't get canvas element!"
+    const canvasWidth = canvas.clientWidth
+    const canvasHeight = canvas.clientHeight
+    const asteroidX = x ? x : canvasWidth * Math.random()
+    const asteroidY = y ? y : canvasHeight * Math.random()
+    const speed = 5 * Math.random() * gameLevel
+    const angle = 360 * Math.random()
+    const diameter = 100 / asteroidNumber
+    const asteroid = new Elem(canvas, "circle")
+        .attr("x", asteroidX.toString())
+        .attr("y", asteroidY.toString())
+        .attr("isActive", "true")
+        .attr("asteroidNumber", asteroidNumber)
+        .attr("shape", "circle")
+        .attr("width", diameter)
+        .attr("height", diameter)
+        .attr("angle", angle)
+        .attr("speed", speed <= 1 ? 2 : speed)
+        .attr("r", diameter / 2)
+        .attr("fill", "#FFFFF")
+
+    // MY ATTEMPT TO GET IMAGES TO WORK. For some reason never worked. Will re-attempt later
+    // const test = new Elem(canvas, "image")
+    //     .attr("href", "assets/m.svg")
+
+    //     .attr("x", asteroidX.toString())
+    //     .attr("y", asteroidY.toString())
+    //     .attr("width", diameter)
+    //     .attr("height", diameter)
+    //     .attr("isActive", "true")
+    //     .attr("asteroidNumber", asteroidNumber)
+    //     // .attr("shape", "circle")
+    //     .attr("angle", angle)
+    //     .attr("speed", speed <= 1 ? 2 : speed)
+    //     .attr("r", diameter / 2)
+    //     .attr("fill", "#FFFFF")
+
+    return asteroid
+}
+
+// Creates a bullet on the canvas with the current direction of the ship. Returns the bullet
+const createBullet = (
+    shipX: number,
+    shipY: number,
+    shipAngle: number,
+    svgCanvas: HTMLElement,
+    sounds: SoundObject
+) => {
+    const bulletStartX = shipX
+    const bulletStatY = shipY
+    const bulletAngle = shipAngle
+    playSound(sounds.shootSound, 0)
+    const bullet = new Elem(svgCanvas, "circle")
+        .attr("id", "bullet")
+        .attr("shape", "circle")
+        .attr("isActive", "true")
+        .attr("timer", 50)
+        .attr("x", bulletStartX)
+        .attr("y", bulletStatY)
+        .attr("angle", bulletAngle)
+        .attr("r", "3")
+        .attr("fill", "#FFFFFF")
+        .attr(
+            "transform",
+            movement(bulletStartX, bulletStatY) + rotation(bulletAngle)
+        )
+    return bullet
+}
+// Impure Function that sets the initial sound settings
+const setSoundInitialSettings = (sounds: SoundObject) => {
+    sounds.backgroundSound.src = "assets/backgroundSound.wav"
+    sounds.backgroundSound.loop = true
+    sounds.backgroundSound.volume = 0.4
+    sounds.shootSound.src = "assets/shoot.wav"
+    sounds.shipExplosionSound.src = "assets/explosion.wav"
+    sounds.asteroidExplosionSound.src = "assets/asteroidExplosion.wav"
+    sounds.smallAsteroidExplosion.src = "assets/smallerExplosion.wav"
+}
+
+// Impure function. Updates the ship position based on x y coordinates.
+const updateShipPosition = (ship: Ship, x: number, y: number) => {
+    ship.x = x
+    ship.y = y
+    ship.gElem.attr("transform", `${movement(x, y)} ${rotation(ship.angle)}`)
+}
+// Impure function. Updates the ship based on a given angle
+const updateShipAngle = (ship: Ship, newAngle: number) => {
+    ship.angle = newAngle
+    ship.gElem.attr(
+        "transform",
+        movement(ship.x, ship.y) + rotation(ship.angle)
+    )
 }
 
 // the following simply runs your asteroids function on window load.  Make sure to leave it in place.
@@ -717,13 +839,3 @@ if (typeof window != "undefined") {
     }
 }
 
-// Inside this function you will use the classes and functions
-// defined in svgelement.ts and observable.ts
-// to add visuals to the svg element in asteroids.html, animate them, and make them interactive.
-// Study and complete the Observable tasks in the week 4 tutorial worksheet first to get ideas.
-
-// You will be marked on your functional programming style
-// as well as the functionality that you implement.
-// Document your code!
-// Explain which ideas you have used ideas from the lectures to
-// create reusable, generic functions.
