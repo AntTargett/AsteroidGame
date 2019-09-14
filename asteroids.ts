@@ -23,15 +23,12 @@
 // Alongisde this, I aimed to use pure functions where possible as well as make them as reusable as possible.
 // Generics where mostly not required for the functionality required.
 // Used ideas from lecture to limit amount of mutated logic required. See CreateAsteroids recursive function to create an asteroid array.
-// Tried to use pure functions where possible to generate strings. 
-// Also used functions to split up logic and for Seperation of concerns. 
-// Also tried to apply DRY principle by creating functions for repated code. 
+// Tried to use pure functions where possible to generate strings.
+// Also used functions to split up logic and for Seperation of concerns.
+// Also tried to apply DRY principle by creating functions for repated code.
 
-// NOTE: Play in full screen for better experiance. 
-// NOTE: Would refactor to different files. Thought it would be easier to leave in one file for marking, etc. 
-
-
-
+// NOTE: Play in full screen for better experiance.
+// NOTE: Would refactor to different files. Thought it would be easier to leave in one file for marking, etc.
 
 // All types for the code. Chose Type by default, and interfaces when extending types
 type Ship = {
@@ -202,6 +199,44 @@ function asteroids() {
         document,
         "keyup"
     )
+    // function upAndDownShake() {
+    //     let counter = 1
+    //     const numberOfShakes = 3
+    //     const startX = 0,
+    //         startY = 0,
+    //         startAngle = 0
+
+    //     let magnitude = 16
+    //     let magnitudeUnit = magnitude / numberOfShakes
+    //     //Shake the element while the `counter` is less than
+    //     //the `numberOfShakes`
+    //     while (counter < numberOfShakes) {
+    //         //Reset the element's position at the start of each shake
+    //         svg.style.transform =
+    //             "translate(" + startX + "px, " + startY + "px)"
+
+    //         //Reduce the magnitude
+    //         magnitude -= magnitudeUnit
+
+    //         //Randomly change the element's position
+    //         var randomX = Math.random() * magnitude
+    //         var randomY = Math.random() * magnitude
+    //         console.log("MADE IT HERE")
+    //         svg.style.transform =
+    //             "translate(" + randomX + "px, " + randomY + "px)"
+
+    //         //Add 1 to the counter
+    //         counter += 1
+    //         console.log("counter", counter)
+
+    //         //requestAnimationFrame(upAndDownShake)
+    //     }
+
+    //     //When the shaking is finished, restore the element to its original
+    //     //position and remove it from the `shakingElements` array
+    //     console.log("REST?")
+    //     svg.style.transform = "translate(" + startX + ", " + startY + ")"
+    // }
 
     // Function to reset game state. Impure. Called in a subscribe
     const resetGame = () => {
@@ -229,6 +264,8 @@ function asteroids() {
 
     const handleShipCollision = (ship: Ship) => {
         playSound(sounds.shipExplosionSound)
+        //upAndDownShake()
+        shake(svg)
         ship.lives = ship.lives - 1
         ship.shipCollisionRecently = true
         if (ship.lives >= 0) {
@@ -836,10 +873,120 @@ const updateShipAngle = (ship: Ship, newAngle: number) => {
     )
 }
 
+const shakingElements: Array<any> = []
+
+//The `randomInt` helper function
+const randomInt = (min: number, max: number) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+}
+// Modified shake function afom here https://stackoverflow.com/questions/36962903/javascript-shake-html-element
+const shake = function(element: HTMLElement, magnitude = 16, angular = false) {
+    //First set the initial tilt angle to the right (+1)
+    let tiltAngle = 1
+
+    //A counter to count the number of shakes
+    let counter = 1
+
+    //The total number of shakes (there will be 1 shake per frame)
+    let numberOfShakes = 15
+
+    //Capture the element's position and angle so you can
+    //restore them after the shaking has finished
+    let startX = 0,
+        startY = 0,
+        startAngle = 0
+
+    // Divide the magnitude into 10 units so that you can
+    // reduce the amount of shake by 10 percent each frame
+    const magnitudeUnit = magnitude / numberOfShakes
+
+    //Add the element to the `shakingElements` array if it
+    //isn't already there
+    if (shakingElements.indexOf(element) === -1) {
+        shakingElements.push(element)
+
+        //Add an `updateShake` method to the element.
+        //The `updateShake` method will be called each frame
+        //in the game loop. The shake effect type can be either
+        //up and down (x/y shaking) or angular (rotational shaking).
+        if (angular) {
+            angularShake()
+        } else {
+            upAndDownShake()
+        }
+    }
+
+    //The `upAndDownShake` function
+    function upAndDownShake() {
+        //Shake the element while the `counter` is less than
+        //the `numberOfShakes`
+        if (counter < numberOfShakes) {
+            //Reset the element's position at the start of each shake
+            element.style.transform =
+                "translate(" + startX + "px, " + startY + "px)"
+
+            //Reduce the magnitude
+            magnitude -= magnitudeUnit
+
+            //Randomly change the element's position
+            var randomX = randomInt(-magnitude, magnitude)
+            var randomY = randomInt(-magnitude, magnitude)
+
+            element.style.transform =
+                "translate(" + randomX + "px, " + randomY + "px)"
+
+            //Add 1 to the counter
+            counter += 1
+
+            requestAnimationFrame(upAndDownShake)
+        }
+
+        //When the shaking is finished, restore the element to its original
+        //position and remove it from the `shakingElements` array
+        if (counter >= numberOfShakes) {
+            element.style.transform =
+                "translate(" + startX + ", " + startY + ")"
+            shakingElements.splice(shakingElements.indexOf(element), 1)
+        }
+    }
+
+    //The `angularShake` function
+    function angularShake() {
+        if (counter < numberOfShakes) {
+            console.log(tiltAngle)
+            //Reset the element's rotation
+            element.style.transform = "rotate(" + startAngle + "deg)"
+
+            //Reduce the magnitude
+            magnitude -= magnitudeUnit
+
+            //Rotate the element left or right, depending on the direction,
+            //by an amount in radians that matches the magnitude
+            var angle = Number(magnitude * tiltAngle).toFixed(2)
+            console.log(angle)
+            element.style.transform = "rotate(" + angle + "deg)"
+            counter += 1
+
+            //Reverse the tilt angle so that the element is tilted
+            //in the opposite direction for the next shake
+            tiltAngle *= -1
+
+            requestAnimationFrame(angularShake)
+        }
+
+        //When the shaking is finished, reset the element's angle and
+        //remove it from the `shakingElements` array
+        if (counter >= numberOfShakes) {
+            element.style.transform = "rotate(" + startAngle + "deg)"
+            shakingElements.splice(shakingElements.indexOf(element), 1)
+            //console.log("removed")
+        }
+    }
+}
+
 // the following simply runs your asteroids function on window load.  Make sure to leave it in place.
 if (typeof window != "undefined") {
     window.onload = () => {
         asteroids()
     }
 }
-
