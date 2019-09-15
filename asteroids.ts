@@ -188,6 +188,9 @@ function asteroids() {
         ),
         highScoreElem
     )
+
+    updateHighScoreLocation(highScoreElem, svg)
+
     updateTextElem(gameInstructionsText, helperInstructions)
     // Keydown observable
     const keydownObservable = Observable.fromEvent<KeyboardEvent>(
@@ -268,6 +271,8 @@ function asteroids() {
         shake(svg)
         ship.lives = ship.lives - 1
         ship.shipCollisionRecently = true
+        ship.element.attr("style", "fill:red;stroke:black;stroke-width:1")
+
         if (ship.lives >= 0) {
             updateTextElem(createShipLivesText(ship.lives), lifeElem)
         }
@@ -297,6 +302,8 @@ function asteroids() {
     const hitObservable = Observable.interval(1000)
     hitObservable.subscribe(e => {
         if (ship.shipCollisionRecently) {
+            ship.element.attr("style", "fill:white;stroke:black;stroke-width:1")
+
             ship.shipCollisionRecently = false
         }
     })
@@ -356,7 +363,7 @@ function asteroids() {
                 //Impure function to move bullet element
                 moveElem(bullet, 10, svg)
                 // Impure function to handle checking collisions with asteroids and bullet timer
-                handleBulletLogic(bullet, asteroids)
+                handleBulletLogic(bullet, asteroids, svg)
             })
             asteroids.forEach(asteroid => {
                 // Function that updates the asteroid. Impure function is called (Has sideeffects)
@@ -420,7 +427,8 @@ function asteroids() {
     const bulletAsteroidCollision = (
         bullet: Elem,
         asteroid: Elem,
-        game: GameObject
+        game: GameObject,
+        canvas: HTMLElement
     ) => {
         const newScore = game.score + 100
         // Mutates game score to be the new Score
@@ -431,10 +439,12 @@ function asteroids() {
             createDisplayText("Highscore", getAndSetHighscoreNumber(newScore)),
             highScoreElem
         )
+        updateHighScoreLocation(highScoreElem, canvas)
         // Gets the asteroid number
         const asteroidNumber = parseInt(asteroid.attr("asteroidNumber"))
         // Emits sound based on asteroid number (Type)
         emitAsteroidSoundEffect(asteroidNumber, sounds)
+        asteroidExplosionAnimation(asteroid)
         // If less than three it will spawn new smaller asteroids
         if (asteroidNumber < 3) {
             const currentX = parseInt(asteroid.attr("x"))
@@ -455,7 +465,11 @@ function asteroids() {
 
     // Impure function. Iterates through all the asteroids and checks for collision with bullet.
     // If there is a collision, marks both as inactive and calls bulletAsteroidCollision
-    const handleBulletLogic = (bullet: Elem, asteroids: Elem[]) => {
+    const handleBulletLogic = (
+        bullet: Elem,
+        asteroids: Elem[],
+        canvas: HTMLElement
+    ) => {
         const currTimer = parseInt(bullet.attr("timer")) - 1
         const bulletActive = bullet.attr("isActive")
         if (currTimer <= 0 || bulletActive === "false") {
@@ -471,7 +485,12 @@ function asteroids() {
                 const hasCollision = circleCollision(bullet, asteroid)
                 // If there is a collision, updated score, remove bullet and asteroid. Set both to false.
                 if (hasCollision) {
-                    bulletAsteroidCollision(bullet, asteroid, gameObject)
+                    bulletAsteroidCollision(
+                        bullet,
+                        asteroid,
+                        gameObject,
+                        canvas
+                    )
                 }
             }
         })
@@ -547,6 +566,12 @@ function asteroids() {
             return true
         })
     }
+}
+const updateHighScoreLocation = (highScoreElem: Elem, svg: Element) => {
+    highScoreElem.attr(
+        "x",
+        svg.clientWidth - highScoreElem.elem.getBBox().width
+    )
 }
 // Handles ship actions for movement.
 const performShipActions = (
@@ -775,6 +800,12 @@ const createAsteroids = ({
           })
         : newAsteroidArray.concat(createAsteroid(rest))
 }
+
+const asteroidExplosionAnimation = (
+    asteroid: Elem,
+    explosionPieces: number = 5
+) => {}
+
 // Creates Asteroid element and adds it to the canvas svg. Returns the asteroid
 function createAsteroid({ x, y, gameLevel, asteroidNumber }: CreateAsteroid) {
     const canvas: HTMLElement | null = document.getElementById("canvas")

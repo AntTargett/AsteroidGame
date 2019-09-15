@@ -115,6 +115,7 @@ function asteroids() {
     updateTextElem(createShipLivesText(ship.lives), lifeElem);
     updateTextElem(createDisplayText("Score", gameObject.score), scoreElem);
     updateTextElem(createDisplayText("Highscore", getAndSetHighscoreNumber(gameObject.score)), highScoreElem);
+    updateHighScoreLocation(highScoreElem, svg);
     updateTextElem(gameInstructionsText, helperInstructions);
     // Keydown observable
     var keydownObservable = Observable.fromEvent(document, "keydown");
@@ -181,6 +182,7 @@ function asteroids() {
         shake(svg);
         ship.lives = ship.lives - 1;
         ship.shipCollisionRecently = true;
+        ship.element.attr("style", "fill:red;stroke:black;stroke-width:1");
         if (ship.lives >= 0) {
             updateTextElem(createShipLivesText(ship.lives), lifeElem);
         }
@@ -207,6 +209,7 @@ function asteroids() {
     var hitObservable = Observable.interval(1000);
     hitObservable.subscribe(function (e) {
         if (ship.shipCollisionRecently) {
+            ship.element.attr("style", "fill:white;stroke:black;stroke-width:1");
             ship.shipCollisionRecently = false;
         }
     });
@@ -258,7 +261,7 @@ function asteroids() {
             //Impure function to move bullet element
             moveElem(bullet, 10, svg);
             // Impure function to handle checking collisions with asteroids and bullet timer
-            handleBulletLogic(bullet, asteroids);
+            handleBulletLogic(bullet, asteroids, svg);
         });
         asteroids.forEach(function (asteroid) {
             // Function that updates the asteroid. Impure function is called (Has sideeffects)
@@ -316,17 +319,19 @@ function asteroids() {
     });
     // Function calls other impure functions to update the score, highscore elements, etc
     // The function itself is not impure.
-    var bulletAsteroidCollision = function (bullet, asteroid, game) {
+    var bulletAsteroidCollision = function (bullet, asteroid, game, canvas) {
         var newScore = game.score + 100;
         // Mutates game score to be the new Score
         game.score = newScore;
         // Updates the text elements to display the new score
         updateTextElem(createDisplayText("Score", newScore), scoreElem);
         updateTextElem(createDisplayText("Highscore", getAndSetHighscoreNumber(newScore)), highScoreElem);
+        updateHighScoreLocation(highScoreElem, canvas);
         // Gets the asteroid number
         var asteroidNumber = parseInt(asteroid.attr("asteroidNumber"));
         // Emits sound based on asteroid number (Type)
         emitAsteroidSoundEffect(asteroidNumber, sounds);
+        asteroidExplosionAnimation(asteroid);
         // If less than three it will spawn new smaller asteroids
         if (asteroidNumber < 3) {
             var currentX = parseInt(asteroid.attr("x"));
@@ -346,7 +351,7 @@ function asteroids() {
     };
     // Impure function. Iterates through all the asteroids and checks for collision with bullet.
     // If there is a collision, marks both as inactive and calls bulletAsteroidCollision
-    var handleBulletLogic = function (bullet, asteroids) {
+    var handleBulletLogic = function (bullet, asteroids, canvas) {
         var currTimer = parseInt(bullet.attr("timer")) - 1;
         var bulletActive = bullet.attr("isActive");
         if (currTimer <= 0 || bulletActive === "false") {
@@ -362,7 +367,7 @@ function asteroids() {
                 var hasCollision = circleCollision(bullet, asteroid);
                 // If there is a collision, updated score, remove bullet and asteroid. Set both to false.
                 if (hasCollision) {
-                    bulletAsteroidCollision(bullet, asteroid, gameObject);
+                    bulletAsteroidCollision(bullet, asteroid, gameObject, canvas);
                 }
             }
         });
@@ -435,6 +440,9 @@ function asteroids() {
         });
     };
 }
+var updateHighScoreLocation = function (highScoreElem, svg) {
+    highScoreElem.attr("x", svg.clientWidth - highScoreElem.elem.getBBox().width);
+};
 // Handles ship actions for movement.
 var performShipActions = function (movementActionObject, ship, svgCanvas) {
     for (var key in movementActionObject) {
@@ -624,6 +632,9 @@ var createAsteroids = function (_a) {
     return numberOfAsteroids > 1
         ? createAsteroids(__assign({ newAsteroidArray: newAsteroidArray.concat(createAsteroid(rest)), numberOfAsteroids: numberOfAsteroids - 1 }, rest))
         : newAsteroidArray.concat(createAsteroid(rest));
+};
+var asteroidExplosionAnimation = function (asteroid, explosionPieces) {
+    if (explosionPieces === void 0) { explosionPieces = 5; }
 };
 // Creates Asteroid element and adds it to the canvas svg. Returns the asteroid
 function createAsteroid(_a) {
