@@ -10,5 +10,5 @@
         "watch": true,
         "outDir": "dist"
     },
-    "include": [ "./src/*.ts", "svgelement.ts", "observable.ts", "src/soundHelper.ts", "src/asteroids.ts" ]
+    "include": [ "./src/*.ts", "src/svgelement.ts", "src/observable.ts", "src/soundHelper.ts", "src/asteroids.ts" ]
 }
