@@ -1,6 +1,3 @@
 {
-    "homepage": "https://anttargett.github.io/AsteroidGame/",
-    "scripts": {
-        "predeploy": "tsc"
-    }
+    "homepage": "https://anttargett.github.io/AsteroidGame/"
 }

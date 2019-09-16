@@ -89,6 +89,7 @@ function asteroids() {
     // Bullets and asteroid arrays are declared as lets so they can be redefined. This is required to reduce number of bullets and asteroids
     let bullets: Elem[] = []
     let asteroids: Elem[] = []
+    let bosses: Elem[] = []
     // Stores movement values for the ship. Used to be able to hold down keys
     const movementObject: any = {}
     // Sounds object that holds all the sound references
@@ -785,6 +786,54 @@ const playSound = (sound: SoundType, time?: number) => {
         sound.currentTime = time
     }
     sound.play()
+}
+
+// Creates Asteroid element and adds it to the canvas svg. Returns the asteroid
+const createBoss = ({ x, y, gameLevel, levelNumber }: any) => {
+    const canvas: HTMLElement | null = document.getElementById("canvas")
+
+    if (!canvas) throw "Couldn't get canvas element!"
+    const canvasWidth = canvas.clientWidth
+    const canvasHeight = canvas.clientHeight
+    const asteroidX = x ? x : canvasWidth * Math.random()
+    const asteroidY = y ? y : canvasHeight * Math.random()
+    const speed = 5 * Math.random() * gameLevel
+    const angle = 360 * Math.random()
+
+    // make a group for the spaceship and a transform to move it and rotate it
+    // to animate the spaceship you will update the transform property
+    const g = new Elem(svg, "g").attr(
+        "transform",
+        "translate(300 300) rotate(0)"
+    )
+    // create a polygon shape for the space ship as a child of the transform group
+    const shipElement = new Elem(svg, "polygon", g.elem)
+        .attr("points", "-15,20 15,20 0,-20")
+        .attr("shape", "triangle")
+        .attr("vx1", "-15")
+        .attr("vy1", "20")
+        .attr("vx2", "15")
+        .attr("vy2", "20")
+        .attr("vx3", "0")
+        .attr("vy3", "-20")
+        .attr("style", "fill:white;stroke:black;stroke-width:1")
+
+    const boss: Ship = {
+        element: shipElement,
+        gElem: g,
+        width: 30,
+        height: 30,
+        x: 300,
+        y: 300,
+        angle: 0,
+        dead: false,
+        acceleration: 0.1,
+        vel: { x: 0, y: 0 },
+        lives: 3,
+        shipCollisionRecently: true
+    }
+
+    return boss
 }
 // PURE Recursive pure function to create an array of asteroids
 const createAsteroids = ({
