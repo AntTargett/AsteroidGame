@@ -1,5 +1,4 @@
 # AsteroidGame
-## GAME DOCUMENTATION
 
 Basic Asteroid game created for Universtiy assignment. 
 
