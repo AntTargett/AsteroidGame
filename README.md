@@ -4,6 +4,8 @@ Basic Asteroid game created for Universtiy assignment.
 
 Written in Typescript utilising the FRP (Functional Reactive Programming) paradigm. 
 
+[Click here to play](https://anttargett.github.io/AsteroidGame/)
+
 ### Features
 - Sound effects
 - Lives
