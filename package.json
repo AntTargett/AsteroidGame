@@ -1,7 +1,19 @@
 {
-    "homepage": "https://anttargett.github.io/AsteroidGame/",
-    "scripts": {
-        "build" : "tsc",
-        "watch" : "tsc -w"
-    }
+	"homepage": "https://anttargett.github.io/AsteroidGame/",
+	"version": "0.0.1",
+    "module": "dist/index.es.js",
+    "main": "dist/index.js",
+	"files": [
+		"dist"
+	],
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "rollup -c",
+		"watch": "rollup -cw"
+	},
+	"devDependencies": {
+		"rollup": "^0.62.0",
+		"rollup-plugin-typescript2": "^0.15.1",
+		"typescript": "^2.9.2"
+	}
 }

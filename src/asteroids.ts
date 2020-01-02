@@ -91,8 +91,20 @@ type GameObject = {
 type movementActionObject = {
 	[key: string]: string | boolean
 }
+
+const getInitialState = (sounds: SoundObject): GameObject => {
+	const isMuted = localStorage.getItem("muted")
+	const gameObject = { level: 0, gameSpeed: 25, muted: false, score: 0 }
+	if (isMuted === "true") {
+		muteSounds(sounds)
+		return { ...gameObject, muted: true }
+	} else {
+		return gameObject
+	}
+}
+
 // Main game is called to start the game
-function asteroids() {
+const asteroids = () => {
 	// Getting canvas (Really an svg)
 	const svg = document.getElementById("canvas")!
 	// Bullets and asteroid arrays are declared as lets so they can be redefined. This is required to reduce number of bullets and asteroids
@@ -161,12 +173,7 @@ function asteroids() {
 		.attr("style", "fill:white;stroke:black;stroke-width:1")
 	// Game object containing global varables for key attributes of the game, which arent required for the ship
 	// Such as level, game speed, whether the game is muted and the current score. Highscore is stored locally in the browser
-	const gameObject: GameObject = {
-		level: 0,
-		gameSpeed: 25,
-		muted: false,
-		score: 0
-	}
+	const gameObject: GameObject = getInitialState(sounds)
 	// Ship object to store information that will need to be updated throughout the game
 	const ship: Ship = {
 		element: shipElement,
@@ -363,8 +370,10 @@ function asteroids() {
 		// m key for muting
 		if (e.key === "m" && !muted) {
 			gameObject.muted = true
+			localStorage.setItem("muted", "true")
 			muteSounds(sounds)
 		} else if (e.key === "m" && muted) {
+			localStorage.setItem("muted", "false")
 			gameObject.muted = false
 			unmuteSounds(sounds)
 		} else if (e.key === "r") {
@@ -932,26 +941,117 @@ const shakingElements: Array<any> = []
 const randomInt = (min: number, max: number) => {
 	return Math.floor(Math.random() * (max - min + 1)) + min
 }
+
+type ShakeType = {
+	magnitude: number
+	element: any
+	magnitudeUnit: number
+    counter: number,
+    numberOfShakes: number
+}
+type AngularShake = ShakeType & {
+	tiltAngle: number
+	startAngle: number
+}
+
+type UpAndDown = ShakeType & {
+	startX: number
+	startY: number
+}
+
+//The `upAndDownShake` function
+const upAndDownShake = (shakeObject: UpAndDown) => {
+	const {
+		startX,
+		startY,
+		magnitude,
+        magnitudeUnit,
+        numberOfShakes,
+		element,
+		counter
+	} = shakeObject
+	const currentMagnitude = magnitude
+	//Reset the element's position at the start of each shake
+	element.style.transform = "translate(" + startX + "px, " + startY + "px)"
+
+	//Reduce the magnitude
+	const newMagnitude = currentMagnitude - magnitudeUnit
+
+	//Randomly change the element's position
+	var randomX = randomInt(-newMagnitude, newMagnitude)
+	var randomY = randomInt(-newMagnitude, newMagnitude)
+
+	element.style.transform = "translate(" + randomX + "px, " + randomY + "px)"
+	requestAnimationFrame(() =>
+		upAndDownShake({
+			...shakeObject,
+			magnitude: newMagnitude,
+			counter: counter + 1
+		})
+	)
+	if (counter >= numberOfShakes) {
+		element.style.transform =
+			"translate(" + startX + "px, " + startY + "px)"
+		shakingElements.splice(shakingElements.indexOf(element), 1)
+	}
+}
+const angularShake = (shakeObject: AngularShake) => {
+	//Reset the element's rotation
+	const {
+		element,
+		startAngle,
+        magnitudeUnit,
+        numberOfShakes,
+		magnitude,
+		counter,
+		tiltAngle
+	} = shakeObject
+	element.style.transform = "rotate(" + startAngle + "deg)"
+
+	//Reduce the magnitude
+	const newMagnitude = magnitude - magnitudeUnit
+
+	//Rotate the element left or right, depending on the direction,
+	//by an amount in radians that matches the magnitude
+	var angle = Number(magnitude * tiltAngle).toFixed(2)
+	console.log(angle)
+	element.style.transform = "rotate(" + angle + "deg)"
+
+	//Reverse the tilt angle so that the element is tilted
+	//in the opposite direction for the next shake
+	const newTiltAngle = tiltAngle * -1
+
+	requestAnimationFrame(() =>
+		angularShake({
+			...shakeObject,
+			tiltAngle: newTiltAngle,
+			magnitude: newMagnitude,
+			counter: counter + 1
+		})
+	)
+	if (counter >= numberOfShakes) {
+		element.style.transform = "rotate(" + startAngle + "deg)"
+		shakingElements.splice(shakingElements.indexOf(element), 1)
+	}
+}
 // Modified shake function afom here https://stackoverflow.com/questions/36962903/javascript-shake-html-element
 const shake = function(element: HTMLElement, magnitude = 16, angular = false) {
 	//First set the initial tilt angle to the right (+1)
-	let tiltAngle = 1
-
-	//A counter to count the number of shakes
-	let counter = 1
+	const tiltAngle = 1
 
 	//The total number of shakes (there will be 1 shake per frame)
-	let numberOfShakes = 15
+	const numberOfShakes = 15
 
 	//Capture the element's position and angle so you can
 	//restore them after the shaking has finished
-	let startX = 0,
+	const startX = 0,
 		startY = 0,
 		startAngle = 0
 
 	// Divide the magnitude into 10 units so that you can
 	// reduce the amount of shake by 10 percent each frame
 	const magnitudeUnit = magnitude / numberOfShakes
+	//The `angularShake` function
 
 	//Add the element to the `shakingElements` array if it
 	//isn't already there
@@ -963,68 +1063,28 @@ const shake = function(element: HTMLElement, magnitude = 16, angular = false) {
 		//in the game loop. The shake effect type can be either
 		//up and down (x/y shaking) or angular (rotational shaking).
 		if (angular) {
-			angularShake()
+			angularShake({
+				counter: 1,
+				magnitude,
+				element,
+				tiltAngle,
+				startAngle,
+                magnitudeUnit,
+                numberOfShakes
+			})
 		} else {
-			upAndDownShake()
+			upAndDownShake({
+				counter: 1,
+				magnitude,
+				element,
+				startX,
+				startY,
+                magnitudeUnit,
+                numberOfShakes
+			})
 		}
-
-		counter += 1
 		//When the shaking is finished, reset the element's angle and
 		//remove it from the `shakingElements` array
-		if (counter >= numberOfShakes) {
-			element.style.transform = "rotate(" + startAngle + "deg)"
-			shakingElements.splice(shakingElements.indexOf(element), 1)
-			//console.log("removed")
-		}
-	}
-
-	//The `upAndDownShake` function
-	function upAndDownShake() {
-		//Shake the element while the `counter` is less than
-		//the `numberOfShakes`
-		if (counter < numberOfShakes) {
-			//Reset the element's position at the start of each shake
-			element.style.transform =
-				"translate(" + startX + "px, " + startY + "px)"
-
-			//Reduce the magnitude
-			magnitude -= magnitudeUnit
-
-			//Randomly change the element's position
-			var randomX = randomInt(-magnitude, magnitude)
-			var randomY = randomInt(-magnitude, magnitude)
-
-			element.style.transform =
-				"translate(" + randomX + "px, " + randomY + "px)"
-
-			//Add 1 to the counter
-
-			requestAnimationFrame(upAndDownShake)
-		}
-	}
-
-	//The `angularShake` function
-	function angularShake() {
-		if (counter < numberOfShakes) {
-			console.log(tiltAngle)
-			//Reset the element's rotation
-			element.style.transform = "rotate(" + startAngle + "deg)"
-
-			//Reduce the magnitude
-			magnitude -= magnitudeUnit
-
-			//Rotate the element left or right, depending on the direction,
-			//by an amount in radians that matches the magnitude
-			var angle = Number(magnitude * tiltAngle).toFixed(2)
-			console.log(angle)
-			element.style.transform = "rotate(" + angle + "deg)"
-
-			//Reverse the tilt angle so that the element is tilted
-			//in the opposite direction for the next shake
-			tiltAngle *= -1
-
-			requestAnimationFrame(angularShake)
-		}
 	}
 }
 

@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-        "target": "ES2017",
+        "module": "es6",
+        "target": "es5",
         "lib": ["ES2017","dom"],
         "noImplicitAny": true,
         "strict": true,
@@ -8,7 +9,9 @@
         "preserveConstEnums": true,
         "sourceMap": true,
         "watch": true,
+        "declaration": true,
+        "declarationDir": "dist",
         "outDir": "dist"
     },
-    "include": [ "./src/*.ts", "src/svgelement.ts", "src/observable.ts", "src/soundHelper.ts", "src/asteroids.ts" ]
+    "include": [ "./src/*.ts", "src/svgelement.ts", "src/observable.ts", "src/soundHelper.ts", "src/asteroids.ts" ],"exclude": ["node_modules"]
 }
