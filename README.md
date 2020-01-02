@@ -6,6 +6,12 @@ Written in Typescript utilising the FRP (Functional Reactive Programming) paradi
 
 [Click here to play](https://anttargett.github.io/AsteroidGame/)
 
+To run locally 
+
+``` npm run watch ```
+
+Then open index.html in a browswer. 
+
 ### Features
 - Sound effects
 - Lives
