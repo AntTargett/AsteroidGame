@@ -1,4 +1,3 @@
-"use strict";
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -10,6 +9,8 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+import Elem from "./svgelement";
+import Observable from "./observable";
 function asteroids() {
     const svg = document.getElementById("canvas");
     let bullets = [];
@@ -482,43 +483,6 @@ const playSound = (sound, time) => {
     }
     sound.play();
 };
-const createBoss = ({ x, y, gameLevel, levelNumber }) => {
-    const canvas = document.getElementById("canvas");
-    if (!canvas)
-        throw "Couldn't get canvas element!";
-    const canvasWidth = canvas.clientWidth;
-    const canvasHeight = canvas.clientHeight;
-    const asteroidX = x ? x : canvasWidth * Math.random();
-    const asteroidY = y ? y : canvasHeight * Math.random();
-    const speed = 5 * Math.random() * gameLevel;
-    const angle = 360 * Math.random();
-    const g = new Elem(svg, "g").attr("transform", "translate(300 300) rotate(0)");
-    const shipElement = new Elem(svg, "polygon", g.elem)
-        .attr("points", "-15,20 15,20 0,-20")
-        .attr("shape", "triangle")
-        .attr("vx1", "-15")
-        .attr("vy1", "20")
-        .attr("vx2", "15")
-        .attr("vy2", "20")
-        .attr("vx3", "0")
-        .attr("vy3", "-20")
-        .attr("style", "fill:white;stroke:black;stroke-width:1");
-    const boss = {
-        element: shipElement,
-        gElem: g,
-        width: 30,
-        height: 30,
-        x: 300,
-        y: 300,
-        angle: 0,
-        dead: false,
-        acceleration: 0.1,
-        vel: { x: 0, y: 0 },
-        lives: 3,
-        shipCollisionRecently: true
-    };
-    return boss;
-};
 const createAsteroids = (_a) => {
     var { newAsteroidArray, numberOfAsteroids } = _a, rest = __rest(_a, ["newAsteroidArray", "numberOfAsteroids"]);
     return numberOfAsteroids > 1
@@ -605,6 +569,11 @@ const shake = function (element, magnitude = 16, angular = false) {
         else {
             upAndDownShake();
         }
+        counter += 1;
+        if (counter >= numberOfShakes) {
+            element.style.transform = "rotate(" + startAngle + "deg)";
+            shakingElements.splice(shakingElements.indexOf(element), 1);
+        }
     }
     function upAndDownShake() {
         if (counter < numberOfShakes) {
@@ -615,13 +584,7 @@ const shake = function (element, magnitude = 16, angular = false) {
             var randomY = randomInt(-magnitude, magnitude);
             element.style.transform =
                 "translate(" + randomX + "px, " + randomY + "px)";
-            counter += 1;
             requestAnimationFrame(upAndDownShake);
-        }
-        if (counter >= numberOfShakes) {
-            element.style.transform =
-                "translate(" + startX + ", " + startY + ")";
-            shakingElements.splice(shakingElements.indexOf(element), 1);
         }
     }
     function angularShake() {
@@ -632,13 +595,8 @@ const shake = function (element, magnitude = 16, angular = false) {
             var angle = Number(magnitude * tiltAngle).toFixed(2);
             console.log(angle);
             element.style.transform = "rotate(" + angle + "deg)";
-            counter += 1;
             tiltAngle *= -1;
             requestAnimationFrame(angularShake);
-        }
-        if (counter >= numberOfShakes) {
-            element.style.transform = "rotate(" + startAngle + "deg)";
-            shakingElements.splice(shakingElements.indexOf(element), 1);
         }
     }
 };

@@ -1,4 +1,4 @@
-"use strict";
+import Observable from "./observable";
 class Elem {
     constructor(svg, tag, parent = svg) {
         this.elem = document.createElementNS(svg.namespaceURI, tag);
@@ -15,4 +15,5 @@ class Elem {
         return Observable.fromEvent(this.elem, event);
     }
 }
+export default Elem;
 //# sourceMappingURL=svgelement.js.map

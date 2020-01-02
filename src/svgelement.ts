@@ -1,3 +1,4 @@
+import Observable from "./observable"
 /** 
  * a little wrapper for creating SVG elements and getting/setting their attributes
  * and observing their events.
@@ -38,3 +39,5 @@ class Elem {
     return Observable.fromEvent<T>(this.elem, event);
   }
 }
+
+export default Elem

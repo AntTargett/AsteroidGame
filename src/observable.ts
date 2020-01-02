@@ -212,3 +212,4 @@ class Observable<Input> {
   }
 }
 
+export default Observable

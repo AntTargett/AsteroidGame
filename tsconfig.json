@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-        "target": "es6",
-        "lib": ["es2016","dom"],
+        "target": "ES2017",
+        "lib": ["ES2017","dom"],
         "noImplicitAny": true,
         "strict": true,
         "removeComments": true,

@@ -1,4 +1,3 @@
-"use strict";
 class SafeObserver {
     constructor(destination) {
         this.isUnsubscribed = false;
@@ -101,4 +100,5 @@ class Observable {
         });
     }
 }
+export default Observable;
 //# sourceMappingURL=observable.js.map
