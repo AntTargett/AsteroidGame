@@ -15,6 +15,7 @@ Written in Typescript utilising the FRP (Functional Reactive Programming) paradi
 ## Future Features
 - [ ] Add proper physics 
 - [ ] Clean up code 
+- [ ] Get images working
 
 ## Other Notes (Kept from assignment Submission) 
 
