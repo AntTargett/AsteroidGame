@@ -2,7 +2,9 @@
 
 Basic Asteroid game created for Universtiy assignment. 
 
-Written in Typescript utilising the FRP (Functional Reactive Programming) paradigm. 
+Written in Pure Typescript utilising the FRP (Functional Reactive Programming) paradigm. 
+
+Uses Rollup for packaging the game. 
 
 [Click here to play](https://anttargett.github.io/AsteroidGame/)
 
@@ -23,6 +25,7 @@ Then open index.html in a browswer.
 - [ ] Clean up code 
 - [ ] Get images working
 - [ ] Add tests
+- [ ] Create NPM module
 
 ## Other Notes (Kept from assignment Submission) 
 
