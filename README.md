@@ -22,6 +22,7 @@ Then open index.html in a browswer.
 - [ ] Add proper physics 
 - [ ] Clean up code 
 - [ ] Get images working
+- [ ] Add tests
 
 ## Other Notes (Kept from assignment Submission) 
 
